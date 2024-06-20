@@ -8,8 +8,5 @@ CREATE TABLE topics(
     curso_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
 
-    PRIMARY KEY(id),
-    FOREIGN KEY(curso_id) REFERENCES cursos(id)
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    PRIMARY KEY(id)
 );
-    );
