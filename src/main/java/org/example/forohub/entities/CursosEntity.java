@@ -2,8 +2,7 @@ package org.example.forohub.entities;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,19 +18,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class cursosEntity {
+public class CursosEntity {
 
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
-    @JsonAlias("id")
+    @Column(name = "id")
     private Long id;
-    @JsonAlias("name")
+    @Column(name = "name")
     private String cursoName;
-    @JsonAlias("category")
+    @Column(name = "category")
     private String cursoCategory;
 
     @OneToMany(mappedBy = "curso_id")
-    private List<topicEntity> cursosTopic;
+    private List<TopicEntity> cursosTopic;
 
 
 

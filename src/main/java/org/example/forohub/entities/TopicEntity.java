@@ -2,8 +2,7 @@ package org.example.forohub.entities;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,30 +20,28 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class topicEntity {
+public class TopicEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonAlias("id")
+    @Column(name = "id")
     private Long id;
-    @JsonAlias("title")
+    @Column(name = "title")
     private String titleTopic;
-    @JsonAlias("message")
+    @Column(name = "message")
     private String bodyTopic;
-    @JsonAlias("creationDate")
+    @Column(name = "creationDate")
     private LocalDateTime topicCreationDate;
-    @JsonAlias("status")
+    @Column(name = "status")
     private Boolean topicStatus;
 
-    @JsonAlias("author_id")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private usersEntity author_id;
+    private UsersEntity author_id;
 
-    @JsonAlias("curso_id")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curso_id")
-    private cursosEntity curso_id;
+    private CursosEntity curso_id;
 
 
 }

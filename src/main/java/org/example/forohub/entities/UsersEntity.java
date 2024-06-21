@@ -2,7 +2,9 @@ package org.example.forohub.entities;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import org.example.forohub.dtos.userDTO.UserRegistration;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,20 +20,27 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class usersEntity {
+public class UsersEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonAlias("id")
+    @Column(name = "id")
     private Long id;
-    @JsonAlias("nombre")
+    @Column(name = "nombre")
     private String name;
-    @JsonAlias("email")
+    @Column(name = "email")
     private String email;
-    @JsonAlias("password")
+    @Column(name = "password")
     private String password;
 
     @OneToMany(mappedBy = "author_id")
-    private List<topicEntity> usersTopic;
+    private List<TopicEntity> usersTopic;
+
+    public UsersEntity(UserRegistration registration) {
+        this.name = registration.name();
+        this.email = registration.email();
+        this.password = registration.password();
+    }
     
 }
