@@ -8,10 +8,11 @@ public record UserRegistration(
     String name,
     @NotBlank (message = "El correo electronico es requerido")
     @Email
+    
     String email,
     @NotBlank (message = "La contraseña es requerida")
     String password
 
 ) {
-
+    
 }

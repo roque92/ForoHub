@@ -29,7 +29,7 @@ public class UsersEntity {
     private Long id;
     @Column(name = "nombre")
     private String name;
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
     @Column(name = "password")
     private String password;
@@ -42,5 +42,7 @@ public class UsersEntity {
         this.email = registration.email();
         this.password = registration.password();
     }
+
+    
     
 }

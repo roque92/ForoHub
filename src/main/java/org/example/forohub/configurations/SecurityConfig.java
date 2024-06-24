@@ -23,6 +23,7 @@ public class SecurityConfig {
                 // Set permissions to endpoints
                 .authorizeHttpRequests(auth -> auth
                         // public enpoints
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
                         // private endpoints
                         .anyRequest().authenticated())
