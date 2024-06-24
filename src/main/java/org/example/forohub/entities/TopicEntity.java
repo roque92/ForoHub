@@ -26,9 +26,9 @@ public class TopicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @Column(name = "title")
+    @Column(name = "title", unique = true)
     private String titleTopic;
-    @Column(name = "message")
+    @Column(name = "message", unique = true)
     private String bodyTopic;
     @Column(name = "creationDate")
     private LocalDateTime topicCreationDate;

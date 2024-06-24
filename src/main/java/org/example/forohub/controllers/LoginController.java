@@ -39,7 +39,7 @@ public class LoginController {
             return ResponseEntity.badRequest().body("Contraseña incorrecta");
         }
         String token = jwtConfiguration.jwt(user.getPassword());
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok("\n\n" + token + "\n\n" + user.getPassword());
     }
 
     @PostMapping("/create")

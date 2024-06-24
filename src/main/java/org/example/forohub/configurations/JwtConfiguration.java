@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 
 @Configuration
 public class JwtConfiguration {
@@ -29,7 +30,7 @@ public class JwtConfiguration {
         return token;
     }
 
-    public boolean jwtValidation (String token, String secret){
+    public boolean jwtValidation(String token, String secret) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             JWT.require(algorithm)
@@ -37,10 +38,11 @@ public class JwtConfiguration {
                 .build()
                 .verify(token);
             return true;
-        } catch (Exception exception){
+        } catch (JWTVerificationException exception) {
+            System.err.println("JWT validation failed: " + exception.getMessage());
             return false;
         }
-
     }
+    
 
 }
