@@ -12,6 +12,7 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 
 @Configuration
 public class JwtConfiguration {
+
     public String jwt (String secret){
         String token = "";
         LocalDateTime now = LocalDateTime.now();
@@ -26,6 +27,20 @@ public class JwtConfiguration {
             System.err.println("Error creating JWT: " + exception.getMessage());
         }
         return token;
+    }
+
+    public boolean jwtValidation (String token, String secret){
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            JWT.require(algorithm)
+                .withIssuer("DevRoque")
+                .build()
+                .verify(token);
+            return true;
+        } catch (Exception exception){
+            return false;
+        }
+
     }
 
 }
