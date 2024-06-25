@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.example.forohub.dtos.cursoDTO.CourseRegistration;
 import org.example.forohub.dtos.cursoDTO.ExistingCourses;
+import org.example.forohub.dtos.topicDTO.TopicRegistration;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,7 +33,8 @@ public class CursosEntity {
     @Column(name = "name")
     private String name;
     @Column(name = "category")
-    @Enumerated
+    @Enumerated(EnumType.STRING)
+    
     private ExistingCourses cursoCategory;
 
     @OneToMany(mappedBy = "curso")
@@ -40,6 +43,14 @@ public class CursosEntity {
     public CursosEntity(CourseRegistration curso) {
         this.name = curso.name();
         this.cursoCategory = curso.category();
+    }
+
+    public CursosEntity convertToCursosEntity(TopicRegistration topicRegistration){
+        CursosEntity cursosEntity = new CursosEntity();
+        CourseRegistration courseRegistration = topicRegistration.curso();
+        cursosEntity.setName(courseRegistration.name());
+        cursosEntity.setCursoCategory(courseRegistration.category());
+        return cursosEntity;
     }
 
 }

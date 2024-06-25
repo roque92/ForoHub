@@ -1,5 +1,8 @@
 package org.example.forohub.dtos.cursoDTO;
 
+import jakarta.validation.constraints.NotNull;
+
+@NotNull(message = "Categoria del curso es requerida")
 public enum ExistingCourses {
     JAVA,
     JAVASCRIPT,
@@ -16,5 +19,14 @@ public enum ExistingCourses {
     PHP,
     RUBY,
     RUST,
-    OTHER
+    OTHER;
+
+    public static ExistingCourses fromStringIgnoreCase(String courseName) {
+        for (ExistingCourses course : ExistingCourses.values()) {
+            if (course.name().equalsIgnoreCase(courseName)) {
+                return course;
+            }
+        }
+        return OTHER;
+    }
 }

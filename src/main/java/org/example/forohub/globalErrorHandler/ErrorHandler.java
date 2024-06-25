@@ -1,16 +1,34 @@
 package org.example.forohub.globalErrorHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> missingDataError(){
-        return ResponseEntity.badRequest().body("Datos incompletos");
+    public ResponseEntity<?> missingDataError(MethodArgumentNotValidException ex) {
+        List<String> errors = new ArrayList<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String errorMessage = error.getDefaultMessage();
+            errors.add(errorMessage);
+        });
+        String formattedErrors = String.join(", ", errors);
+        return ResponseEntity.badRequest().body("Datos incompletos: " + formattedErrors);
     }
+    @ExceptionHandler(JsonMappingException.class)
+    public ResponseEntity<?> missingCategory(JsonMappingException ex){
+
+        String errorMessage = "La categoría del curso es requerida."; 
+        return ResponseEntity.badRequest().body(errorMessage);
+    }
+
 
 }

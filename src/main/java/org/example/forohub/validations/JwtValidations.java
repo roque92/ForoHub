@@ -28,7 +28,7 @@ public class JwtValidations extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            if (jwtConfiguration.jwtValidation(token, "SECRET")) {
+            if (jwtConfiguration.jwtValidation(token, "$argon2id$v=19$m=16384,t=2,p=1$Wd8s+XRCfkMq/tFpJUwXEg$gAYAg+L40rQIMtQYTq8RpbY2UitddAMbZjBQQkklcgg")) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(token,
                         null, null);
                 SecurityContextHolder.getContext().setAuthentication(

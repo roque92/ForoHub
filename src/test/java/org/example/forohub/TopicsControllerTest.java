@@ -18,8 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,14 +41,13 @@ public class TopicsControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+@Test
     public void testNewTopic() {
         // Datos de prueba
         TopicRegistration topicRegistration = new TopicRegistration(
                 "Título del tópico",
                 "Mensaje del tópico",
-                LocalDateTime.now(),
-                true,
                 "test@example.com",
                 new CourseRegistration("Nombre del curso", ExistingCourses.JAVA)
         );

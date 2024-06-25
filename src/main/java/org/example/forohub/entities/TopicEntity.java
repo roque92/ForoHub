@@ -32,10 +32,11 @@ public class TopicEntity {
     private String titleTopic;
     @Column(name = "message", unique = true)
     private String bodyTopic;
-    @Column(name = "creationDate")
+    @Column(name = "creation_date")
     private LocalDateTime topicCreationDate;
     @Column(name = "status")
     private Boolean topicStatus;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
@@ -45,13 +46,11 @@ public class TopicEntity {
     @JoinColumn(name = "curso_id")
     private CursosEntity curso;
 
-    public TopicEntity(TopicRegistration topicRegistration, UsersEntity author, CursosEntity curso) {
+    public TopicEntity(TopicRegistration topicRegistration, UsersEntity author, CursosEntity curso, Long userId, Long cursoId) {
         this.titleTopic = topicRegistration.title();
         this.bodyTopic = topicRegistration.message();
-        this.topicCreationDate = topicRegistration.date();
-        this.topicStatus = topicRegistration.status();
-        this.author = author; // Asigna la entidad UsersEntity
-        this.curso = curso; // Asigna la entidad CursosEntity
+        this.author = author;
+        this.curso = curso;
     }
 
 }
