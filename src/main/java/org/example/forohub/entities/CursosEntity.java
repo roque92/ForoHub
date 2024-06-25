@@ -2,8 +2,12 @@ package org.example.forohub.entities;
 
 import java.util.List;
 
+import org.example.forohub.dtos.cursoDTO.CourseRegistration;
+import org.example.forohub.dtos.cursoDTO.ExistingCourses;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,18 +25,21 @@ import lombok.NoArgsConstructor;
 public class CursosEntity {
 
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
     @Column(name = "name")
-    private String cursoName;
+    private String name;
     @Column(name = "category")
-    private String cursoCategory;
+    @Enumerated
+    private ExistingCourses cursoCategory;
 
-    @OneToMany(mappedBy = "curso_id")
+    @OneToMany(mappedBy = "curso")
     private List<TopicEntity> cursosTopic;
 
+    public CursosEntity(CourseRegistration curso) {
+        this.name = curso.name();
+        this.cursoCategory = curso.category();
+    }
 
-
-    
 }

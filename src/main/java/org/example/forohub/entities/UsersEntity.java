@@ -34,13 +34,17 @@ public class UsersEntity {
     @Column(name = "password")
     private String password;
 
-    @OneToMany(mappedBy = "author_id")
+    @OneToMany(mappedBy = "author")
     private List<TopicEntity> usersTopic;
 
     public UsersEntity(UserRegistration registration) {
         this.name = registration.name();
         this.email = registration.email();
         this.password = registration.password();
+    }
+
+    public UsersEntity(Long author_id) {
+        
     }
 
     

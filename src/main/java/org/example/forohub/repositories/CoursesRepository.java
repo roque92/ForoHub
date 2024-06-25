@@ -1,12 +1,12 @@
 package org.example.forohub.repositories;
 
-import org.example.forohub.entities.UsersEntity;
+import org.example.forohub.entities.CursosEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UsersRepository extends JpaRepository<UsersEntity, Long>{
+public interface CoursesRepository extends JpaRepository<CursosEntity, Long>{
 
-    UsersEntity findByEmail(String email);
+    CursosEntity findByName(String curso);
 
 }

@@ -2,6 +2,8 @@ package org.example.forohub.entities;
 
 import java.time.LocalDateTime;
 
+import org.example.forohub.dtos.topicDTO.TopicRegistration;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TopicEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -37,11 +39,19 @@ public class TopicEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private UsersEntity author_id;
+    private UsersEntity author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curso_id")
-    private CursosEntity curso_id;
+    private CursosEntity curso;
 
+    public TopicEntity(TopicRegistration topicRegistration, UsersEntity author, CursosEntity curso) {
+        this.titleTopic = topicRegistration.title();
+        this.bodyTopic = topicRegistration.message();
+        this.topicCreationDate = topicRegistration.date();
+        this.topicStatus = topicRegistration.status();
+        this.author = author; // Asigna la entidad UsersEntity
+        this.curso = curso; // Asigna la entidad CursosEntity
+    }
 
 }
