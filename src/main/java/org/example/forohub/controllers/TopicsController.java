@@ -1,14 +1,19 @@
 package org.example.forohub.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.example.forohub.dtos.topicDTO.TopicConsult;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
 import org.example.forohub.entities.CursosEntity;
 import org.example.forohub.entities.TopicEntity;
@@ -17,11 +22,16 @@ import org.example.forohub.repositories.TopicRepository;
 import org.example.forohub.repositories.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -31,22 +41,70 @@ public class TopicsController {
 
     private static final Logger log = LoggerFactory.getLogger(TopicsController.class);
 
-    @Autowired
     private UsersRepository userRepository;
-    @Autowired
     private CoursesRepository coursesRepository;
-    @Autowired
     private TopicRepository topicRepository;
 
-    // List all
-    @GetMapping("/")
-    public ResponseEntity<?> listAllTopics() {
-
-        return ResponseEntity.ok("List of topics...");
+    public TopicsController(UsersRepository userRepository, CoursesRepository coursesRepository,
+            TopicRepository topicRepository,
+            HttpServletRequest request) {
+        this.userRepository = userRepository;
+        this.coursesRepository = coursesRepository;
+        this.topicRepository = topicRepository;
     }
 
+    // findAll 
+    @GetMapping("/")
+    public ResponseEntity<Page<TopicConsult>> listAllTopics(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("topicCreationDate").descending());
+        Page<TopicEntity> topics = topicRepository.findAll(pageable);
+        if (topics.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        List<TopicConsult> allTopics = topics.stream()
+                .map(t -> {
+                    TopicConsult topic = new TopicConsult(
+                            t.getTitleTopic(),
+                            t.getBodyTopic(),
+                            t.getTopicStatus(),
+                            t.getTopicCreationDate(),
+                            t.getUserConsult().name(),
+                            t.getCursoConsult().category());
+                    return topic;
+                })
+                .collect(Collectors.toList());
+
+        Page<TopicConsult> resultPage = new PageImpl<>(allTopics, pageable, topics.getTotalElements());
+        return ResponseEntity.ok(resultPage);
+    }
+
+    //findByID
+    @GetMapping("/{id}")
+    public ResponseEntity<TopicConsult> getTopicById (@PathVariable("id") Long id) {
+        Optional<TopicEntity> topic = topicRepository.findById(id);
+        if (topic.isPresent()) {
+            TopicEntity topicEntity = topic.get();
+            TopicConsult topicConsult = new TopicConsult(
+                topicEntity.getTitleTopic(),
+                topicEntity.getBodyTopic(),
+                topicEntity.getTopicStatus(),
+                topicEntity.getTopicCreationDate(),
+                topicEntity.getUserConsult().name(),
+                topicEntity.getCursoConsult().category()
+            );
+            return ResponseEntity.ok(topicConsult);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+
     // Create
-    @PostMapping("/")
+    @PostMapping()
     @Transactional
     public ResponseEntity<?> newTopic(@RequestBody @Valid TopicRegistration topic) {
         var user = userRepository.findByEmail(topic.email().trim());
@@ -62,6 +120,20 @@ public class TopicsController {
         if (cursosEntity.getCursoCategory() == null) {
             return ResponseEntity.badRequest().body("La categoría del curso es requerida");
         }
+
+        TopicEntity newTopic = new TopicEntity(topic, user, cursosEntity, user.getId(), cursosEntity.getId());
+        newTopic.setTopicCreationDate(LocalDateTime.now());
+        newTopic.setTopicStatus(true);
+        List<TopicEntity> check;
+        check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
+        if (!check.isEmpty()) {
+            return ResponseEntity.badRequest().body("El título del tema ya existe, busca el id del tema " + check.get(0).getId());
+        }
+        check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
+        if (!check.isEmpty()) {
+            return ResponseEntity.badRequest().body("El mensaje del tema ya existe, busca el id " + check.get(0).getId());
+        }
+
         try {
             cursosEntity = coursesRepository.save(cursosEntity);
         } catch (DataAccessResourceFailureException ex) {
@@ -72,19 +144,7 @@ public class TopicsController {
         if (cursosEntity.getId() == null) {
             return ResponseEntity.badRequest().body("Error al generar ID del curso");
         }
-
-        TopicEntity newTopic = new TopicEntity(topic, user, cursosEntity, user.getId(), cursosEntity.getId());
-        newTopic.setTopicCreationDate(LocalDateTime.now());
-        newTopic.setTopicStatus(true);
-        List<TopicEntity> check;
-        check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
-        if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El título del tema ya existe");
-        }
-        check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
-        if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El mensaje del tema ya existe");
-        }
+        newTopic.setCurso(cursosEntity);
 
         try {
             newTopic = topicRepository.save(newTopic);

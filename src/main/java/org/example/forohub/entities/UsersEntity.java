@@ -37,16 +37,20 @@ public class UsersEntity {
     @OneToMany(mappedBy = "author")
     private List<TopicEntity> usersTopic;
 
+    
+   public UsersEntity(Long author_id) {}
+    
+    //Create
     public UsersEntity(UserRegistration registration) {
         this.name = registration.name();
         this.email = registration.email();
         this.password = registration.password();
     }
 
-    public UsersEntity(Long author_id) {
-        
-    }
+    //Read
 
-    
+    //Update
+
+    //Delete
     
 }

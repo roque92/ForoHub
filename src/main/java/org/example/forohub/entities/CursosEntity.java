@@ -40,11 +40,7 @@ public class CursosEntity {
     @OneToMany(mappedBy = "curso")
     private List<TopicEntity> cursosTopic;
 
-    public CursosEntity(CourseRegistration curso) {
-        this.name = curso.name();
-        this.cursoCategory = curso.category();
-    }
-
+    
     public CursosEntity convertToCursosEntity(TopicRegistration topicRegistration){
         CursosEntity cursosEntity = new CursosEntity();
         CourseRegistration courseRegistration = topicRegistration.curso();
@@ -52,5 +48,17 @@ public class CursosEntity {
         cursosEntity.setCursoCategory(courseRegistration.category());
         return cursosEntity;
     }
+    
+    //Create
+    public CursosEntity(CourseRegistration curso) {
+        this.name = curso.name();
+        this.cursoCategory = curso.category();
+    }
+
+    //Read
+
+    //Update
+
+    //Delete
 
 }

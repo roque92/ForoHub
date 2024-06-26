@@ -19,18 +19,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/login")
 public class LoginController {
 
-    private final UserService userService;
-    private final UsersRepository usersRepository;
-    private final JwtConfiguration jwtConfiguration;
+    private UserService userService;
+    private UsersRepository usersRepository;
+    private JwtConfiguration jwtConfiguration;
 
-    public LoginController(UserService userService, UsersRepository usersRepository, JwtConfiguration jwtConfiguration) {
+    public LoginController(UserService userService, UsersRepository usersRepository,
+            JwtConfiguration jwtConfiguration) {
         this.userService = userService;
         this.usersRepository = usersRepository;
         this.jwtConfiguration = jwtConfiguration;
     }
 
-    @PostMapping("/")
+    @PostMapping()
     public ResponseEntity<?> loginUser(@RequestBody @Valid UserLogin login) {
+
         UsersEntity user = usersRepository.findByEmail(login.email());
         if (user == null) {
             return ResponseEntity.badRequest().body("Usuario no existe");
@@ -39,7 +41,9 @@ public class LoginController {
             return ResponseEntity.badRequest().body("Contraseña incorrecta");
         }
         String token = jwtConfiguration.jwt(user.getPassword());
-        return ResponseEntity.ok("\n\n" + token + "\n\n" + user.getPassword());
+
+        
+        return ResponseEntity.ok("\n" + token + "\n\n" + user.getPassword() + "\n\n");
     }
 
     @PostMapping("/create")

@@ -17,6 +17,11 @@ public class ExistingCoursesDeserializer extends JsonDeserializer<ExistingCourse
         if (courseName == null || courseName.isBlank()) {
             throw new JsonMappingException(p, "Invalid course category: " + courseName);
         }
-        return ExistingCourses.fromStringIgnoreCase(courseName);
+        for (ExistingCourses course : ExistingCourses.values()) {
+            if (course.matches(courseName)) {
+                return course; 
+            }
+        }
+        return ExistingCourses.OTHER;
     }
 }

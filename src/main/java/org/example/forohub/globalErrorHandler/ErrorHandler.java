@@ -23,11 +23,17 @@ public class ErrorHandler {
         String formattedErrors = String.join(", ", errors);
         return ResponseEntity.badRequest().body("Datos incompletos: " + formattedErrors);
     }
+
     @ExceptionHandler(JsonMappingException.class)
     public ResponseEntity<?> missingCategory(JsonMappingException ex){
 
         String errorMessage = "La categoría del curso es requerida."; 
         return ResponseEntity.badRequest().body(errorMessage);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> IllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
 
