@@ -28,6 +28,7 @@ public class SecurityConfig {
                         // public enpoints
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/login/**").permitAll()
                         // private endpoints
                         .anyRequest().authenticated())
                 .build();

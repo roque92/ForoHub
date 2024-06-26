@@ -54,7 +54,7 @@ public class TopicsController {
     }
 
     // findAll 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<Page<TopicConsult>> listAllTopics(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -127,11 +127,11 @@ public class TopicsController {
         List<TopicEntity> check;
         check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
         if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El título del tema ya existe, busca el id del tema " + check.get(0).getId());
+            return ResponseEntity.badRequest().body("El título del tema ya existe, busca el id del tema: " + check.get(0).getId());
         }
         check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
         if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El mensaje del tema ya existe, busca el id " + check.get(0).getId());
+            return ResponseEntity.badRequest().body("El mensaje del tema ya existe, busca el id: " + check.get(0).getId());
         }
 
         try {

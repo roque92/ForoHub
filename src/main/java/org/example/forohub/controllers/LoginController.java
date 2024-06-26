@@ -2,17 +2,21 @@ package org.example.forohub.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.example.forohub.configurations.JwtConfiguration;
 import org.example.forohub.dtos.userDTO.UserLogin;
 import org.example.forohub.dtos.userDTO.UserRegistration;
+import org.example.forohub.dtos.userDTO.UserUpdatePassword;
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
 import org.example.forohub.services.userServices.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -47,6 +51,7 @@ public class LoginController {
     }
 
     @PostMapping("/create")
+    @Transactional 
     public ResponseEntity<?> userRegistration(@RequestBody @Valid UserRegistration registration) {
         var emailAlreadyExists = usersRepository.findByEmail(registration.email());
         if (emailAlreadyExists != null) {
@@ -56,5 +61,25 @@ public class LoginController {
         usersRepository.save(preparedUser);
         return ResponseEntity.ok("Usuario creado exitosamente");
     }
+
+    //update password
+    @PutMapping("/{email}")
+    @Transactional 
+    public ResponseEntity<?> updatePassword (@PathVariable("email") String email, @RequestBody @Valid UserUpdatePassword userUpdatePassword) {
+        UsersEntity user = usersRepository.findByEmail(email);
+        if(user != null){
+            if (userService.matchPassword(userUpdatePassword.password(), user.getPassword())) {
+                return ResponseEntity.badRequest().body("Contraseña no puede ser la misma");
+            }
+            String encodedNewPassword = userService.passwordEncoder.encode(userUpdatePassword.password());
+            user.setPassword(encodedNewPassword);
+            usersRepository.save(user);
+            return ResponseEntity.ok("Contraseña actualizada correctamente");
+        } else {
+            return ResponseEntity.badRequest().body("Usuario no existe");
+        }
+        
+    }
+    
 
 }

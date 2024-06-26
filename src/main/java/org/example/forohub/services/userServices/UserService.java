@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private final PasswordEncoder passwordEncoder;
+    public final PasswordEncoder passwordEncoder;
     public UserService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
@@ -18,7 +18,6 @@ public class UserService {
         UsersEntity newUser = new UsersEntity(registration);
         newUser.setPassword(encryptedPassword); 
         return newUser;
-
     }
 
     
