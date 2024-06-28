@@ -3,6 +3,7 @@ package org.example.forohub.entities;
 import java.time.LocalDateTime;
 
 import org.example.forohub.dtos.cursoDTO.CursoConsult;
+import org.example.forohub.dtos.cursoDTO.CursoUpdateInfo;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
 import org.example.forohub.dtos.userDTO.UserConsult;
 
@@ -48,7 +49,7 @@ public class TopicEntity {
     @JoinColumn(name = "curso_id")
     private CursosEntity curso;
 
-    //Creat
+    //Create
     public TopicEntity(TopicRegistration topicRegistration, UsersEntity author, CursosEntity curso, Long userId, Long cursoId) {
         this.titleTopic = topicRegistration.title();
         this.bodyTopic = topicRegistration.message();
@@ -66,7 +67,7 @@ public class TopicEntity {
     }
 
     //Update
-
-    //Delete
-
+    public void actualizarCurso(CursoUpdateInfo cursoUpdateInfo) {
+        this.curso = curso.updateCursoInfo(cursoUpdateInfo);
+    }
 }

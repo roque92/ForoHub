@@ -8,13 +8,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record CourseRegistration(
+public record CursoRegistration(
     @NotBlank(message = "El nombre del curso es requerido")
     String name,
     @NotNull(message = "La categoría del curso es requerida")
     @JsonDeserialize(using = ExistingCoursesDeserializer.class)
     @Valid
-    ExistingCourses category
+    CursoExistente category
 ) {
 
 }

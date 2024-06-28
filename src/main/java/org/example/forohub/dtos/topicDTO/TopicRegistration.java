@@ -1,6 +1,6 @@
 package org.example.forohub.dtos.topicDTO;
 
-import org.example.forohub.dtos.cursoDTO.CourseRegistration;
+import org.example.forohub.dtos.cursoDTO.CursoRegistration;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -17,7 +17,7 @@ public record TopicRegistration(
     String email,
     @NotNull(message="El nombre del curso es requerido")
     @Valid
-    CourseRegistration curso
+    CursoRegistration curso
 )
 {
 

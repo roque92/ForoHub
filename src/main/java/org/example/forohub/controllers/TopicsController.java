@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.example.forohub.dtos.topicDTO.TopicConsult;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
+import org.example.forohub.dtos.topicDTO.TopicUpdateInfo;
 import org.example.forohub.entities.CursosEntity;
 import org.example.forohub.entities.TopicEntity;
 import org.example.forohub.repositories.CoursesRepository;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/topics")
@@ -46,14 +48,13 @@ public class TopicsController {
     private TopicRepository topicRepository;
 
     public TopicsController(UsersRepository userRepository, CoursesRepository coursesRepository,
-            TopicRepository topicRepository,
-            HttpServletRequest request) {
+            TopicRepository topicRepository, HttpServletRequest request) {
         this.userRepository = userRepository;
         this.coursesRepository = coursesRepository;
         this.topicRepository = topicRepository;
     }
 
-    // findAll 
+    // findAll
     @GetMapping()
     public ResponseEntity<Page<TopicConsult>> listAllTopics(
             @RequestParam(defaultValue = "0") int page,
@@ -82,82 +83,119 @@ public class TopicsController {
         return ResponseEntity.ok(resultPage);
     }
 
-    //findByID
+    // findByID
     @GetMapping("/{id}")
-    public ResponseEntity<TopicConsult> getTopicById (@PathVariable("id") Long id) {
+    public ResponseEntity<TopicConsult> getTopicById(@PathVariable("id") Long id) {
         Optional<TopicEntity> topic = topicRepository.findById(id);
         if (topic.isPresent()) {
             TopicEntity topicEntity = topic.get();
             TopicConsult topicConsult = new TopicConsult(
-                topicEntity.getTitleTopic(),
-                topicEntity.getBodyTopic(),
-                topicEntity.getTopicStatus(),
-                topicEntity.getTopicCreationDate(),
-                topicEntity.getUserConsult().name(),
-                topicEntity.getCursoConsult().category()
-            );
+                    topicEntity.getTitleTopic(),
+                    topicEntity.getBodyTopic(),
+                    topicEntity.getTopicStatus(),
+                    topicEntity.getTopicCreationDate(),
+                    topicEntity.getUserConsult().name(),
+                    topicEntity.getCursoConsult().category());
             return ResponseEntity.ok(topicConsult);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
-    
 
     // Create
     @PostMapping()
     @Transactional
-    public ResponseEntity<?> newTopic(@RequestBody @Valid TopicRegistration topic) {
+    public ResponseEntity<?> createTopic(@RequestBody @Valid TopicRegistration topic) {
         var user = userRepository.findByEmail(topic.email().trim());
-        if (user == null) {
-            return ResponseEntity.badRequest().body("Usuario no existe");
-        }
+        if (user != null) {
 
-        CursosEntity cursosEntity = new CursosEntity();
-        cursosEntity = cursosEntity.convertToCursosEntity(topic);
-        if (cursosEntity.getName().isEmpty()) {
-            return ResponseEntity.badRequest().body("El nombre del curso es requerido");
-        }
-        if (cursosEntity.getCursoCategory() == null) {
-            return ResponseEntity.badRequest().body("La categoría del curso es requerida");
-        }
+            CursosEntity cursosEntity = new CursosEntity();
+            cursosEntity = cursosEntity.createFromTopicRegistration(topic);
+            if (cursosEntity.getName().isEmpty()) {
+                return ResponseEntity.badRequest().body("El nombre del curso es requerido");
+            }
+            if (cursosEntity.getCursoCategory() == null) {
+                return ResponseEntity.badRequest().body("La categoría del curso es requerida");
+            }
 
-        TopicEntity newTopic = new TopicEntity(topic, user, cursosEntity, user.getId(), cursosEntity.getId());
-        newTopic.setTopicCreationDate(LocalDateTime.now());
-        newTopic.setTopicStatus(true);
-        List<TopicEntity> check;
-        check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
-        if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El título del tema ya existe, busca el id del tema: " + check.get(0).getId());
-        }
-        check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
-        if (!check.isEmpty()) {
-            return ResponseEntity.badRequest().body("El mensaje del tema ya existe, busca el id: " + check.get(0).getId());
-        }
+            TopicEntity newTopic = new TopicEntity(topic, user, cursosEntity, user.getId(), cursosEntity.getId());
+            newTopic.setTopicCreationDate(LocalDateTime.now());
+            newTopic.setTopicStatus(true);
+            List<TopicEntity> check;
+            check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
+            if (!check.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("El título del tema ya existe, busca el id del tema: " + check.get(0).getId());
+            }
+            check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
+            if (!check.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("El mensaje del tema ya existe, busca el id: " + check.get(0).getId());
+            }
 
-        try {
-            cursosEntity = coursesRepository.save(cursosEntity);
-        } catch (DataAccessResourceFailureException ex) {
-            log.error("Database is unavailable: {}", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Error: Database is currently unavailable. Please try again later.");
-        }
-        if (cursosEntity.getId() == null) {
-            return ResponseEntity.badRequest().body("Error al generar ID del curso");
-        }
-        newTopic.setCurso(cursosEntity);
+            try {
+                cursosEntity = coursesRepository.save(cursosEntity);
+            } catch (DataAccessResourceFailureException ex) {
+                log.error("Database is unavailable: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body("Error: Database is currently unavailable. Please try again later.");
+            }
+            if (cursosEntity.getId() == null) {
+                return ResponseEntity.badRequest().body("Error al generar ID del curso");
+            }
+            newTopic.setCurso(cursosEntity);
 
-        try {
-            newTopic = topicRepository.save(newTopic);
-        } catch (DataAccessResourceFailureException ex) {
-            log.error("Database is unavailable: {}", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Error: Database is currently unavailable. Please try again later.");
-        }
+            try {
+                newTopic = topicRepository.save(newTopic);
+            } catch (DataAccessResourceFailureException ex) {
+                log.error("Database is unavailable: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body("Error: Database is currently unavailable. Please try again later.");
+            }
 
-        return ResponseEntity.ok("Registro guardado con ID: " + newTopic.getId());
+            return ResponseEntity.ok("Registro guardado con ID: " + newTopic.getId());
+
+        }
+        return ResponseEntity.badRequest().body("Usuario no existe");
     }
 
     // Update
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> updateTopic(@PathVariable("id") Long id,
+            @RequestBody @Valid TopicUpdateInfo topicUpdateInfo) {
+        var user = userRepository.findByEmail(topicUpdateInfo.email().trim());
+        if (user != null) {
+            Optional<TopicEntity> existTopic = topicRepository.findByIdAndAuthorId(id, user.getId());
+            if (existTopic.isPresent()) {
+                TopicEntity updatedInfo = existTopic.get();
+                if (topicUpdateInfo.title() != null) {
+                    if (updatedInfo.getTitleTopic() != topicUpdateInfo.title()) {
+                        updatedInfo.setTitleTopic(topicUpdateInfo.title());
+                    }
+                    throw new IllegalArgumentException("El titulo del topic ya existe.");
+                }
+                if (topicUpdateInfo.message() != null) {
+                    if (updatedInfo.getBodyTopic() != topicUpdateInfo.message()) {
+                        updatedInfo.setBodyTopic(topicUpdateInfo.message());
+                    }
+                    throw new IllegalArgumentException("El mensaje del topic ya existe.");
+                }
+                if (updatedInfo.getTopicStatus() != topicUpdateInfo.status()) {
+                    updatedInfo.setTopicStatus(topicUpdateInfo.status());
+                }
+                if (topicUpdateInfo.cursoUpdateInfo() != null) {
+                    updatedInfo.actualizarCurso(topicUpdateInfo.cursoUpdateInfo());
+                }
+
+                topicRepository.save(updatedInfo);
+                return ResponseEntity.ok().body("Datos actualizados correctamente");
+
+            }
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.badRequest().body("Usuario no encontrado");
+    }
 
     // Delete
 

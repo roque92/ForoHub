@@ -13,7 +13,7 @@ import org.example.forohub.dtos.userDTO.UserUpdateInformation;
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
 import org.example.forohub.services.userServices.UserService;
-import org.example.forohub.validations.UserUpdateInfoValidation;
+import org.example.forohub.services.userServices.UserUpdateInfoValidation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -81,7 +81,7 @@ public class LoginController {
             }
             user.setPassword(passwordValidated);
             user.setEmail(emailValidated);
-            usersRepository.save(user);
+            usersRepository.updateEmailAndPassword(user.getPassword(), user.getEmail());
             return ResponseEntity.ok("Informacion actualizada correctamente");
 
         } else {

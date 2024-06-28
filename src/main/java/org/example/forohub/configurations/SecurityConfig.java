@@ -1,6 +1,6 @@
 package org.example.forohub.configurations;
 
-import org.example.forohub.validations.JwtValidations;
+import org.example.forohub.component.JwtValidations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

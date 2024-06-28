@@ -5,23 +5,23 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-import org.example.forohub.dtos.cursoDTO.ExistingCourses;
+import org.example.forohub.dtos.cursoDTO.CursoExistente;
 
 import java.io.IOException;
 
-public class ExistingCoursesDeserializer extends JsonDeserializer<ExistingCourses> {
+public class ExistingCoursesDeserializer extends JsonDeserializer<CursoExistente> {
 
     @Override
-    public ExistingCourses deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public CursoExistente deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String courseName = p.getText();
         if (courseName == null || courseName.isBlank()) {
             throw new JsonMappingException(p, "Invalid course category: " + courseName);
         }
-        for (ExistingCourses course : ExistingCourses.values()) {
+        for (CursoExistente course : CursoExistente.values()) {
             if (course.matches(courseName)) {
                 return course; 
             }
         }
-        return ExistingCourses.OTHER;
+        return CursoExistente.OTHER;
     }
 }

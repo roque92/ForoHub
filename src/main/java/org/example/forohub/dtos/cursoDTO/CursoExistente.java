@@ -1,9 +1,6 @@
 package org.example.forohub.dtos.cursoDTO;
 
-import jakarta.validation.constraints.NotNull;
-
-@NotNull(message = "Categoria del curso es requerida")
-public enum ExistingCourses {
+public enum CursoExistente {
     JAVA("Java", "java"),
     JAVASCRIPT("JavaScript", "javascript", "js"),
     REACT("React", "react"),
@@ -29,7 +26,7 @@ public enum ExistingCourses {
 
     private final String[] names;
 
-    ExistingCourses(String... names) {
+    CursoExistente(String... names) {
         this.names = names;
     }
 

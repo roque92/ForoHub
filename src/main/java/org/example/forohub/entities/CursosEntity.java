@@ -2,8 +2,9 @@ package org.example.forohub.entities;
 
 import java.util.List;
 
-import org.example.forohub.dtos.cursoDTO.CourseRegistration;
-import org.example.forohub.dtos.cursoDTO.ExistingCourses;
+import org.example.forohub.dtos.cursoDTO.CursoRegistration;
+import org.example.forohub.dtos.cursoDTO.CursoUpdateInfo;
+import org.example.forohub.dtos.cursoDTO.CursoExistente;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
 
 import jakarta.persistence.Column;
@@ -35,30 +36,31 @@ public class CursosEntity {
     @Column(name = "category")
     @Enumerated(EnumType.STRING)
     
-    private ExistingCourses cursoCategory;
+    private CursoExistente cursoCategory;
 
     @OneToMany(mappedBy = "curso")
     private List<TopicEntity> cursosTopic;
 
     
-    public CursosEntity convertToCursosEntity(TopicRegistration topicRegistration){
+    public CursosEntity createFromTopicRegistration(TopicRegistration topicRegistration){
         CursosEntity cursosEntity = new CursosEntity();
-        CourseRegistration courseRegistration = topicRegistration.curso();
+        CursoRegistration courseRegistration = topicRegistration.curso();
         cursosEntity.setName(courseRegistration.name());
         cursosEntity.setCursoCategory(courseRegistration.category());
         return cursosEntity;
     }
     
     //Create
-    public CursosEntity(CourseRegistration curso) {
+    public CursosEntity(CursoRegistration curso) {
         this.name = curso.name();
         this.cursoCategory = curso.category();
     }
 
-    //Read
-
     //Update
-
-    //Delete
+    public CursosEntity updateCursoInfo(CursoUpdateInfo cursoUpdateInfo) {
+       this.name = cursoUpdateInfo.name();
+       this.cursoCategory = cursoUpdateInfo.category();
+       return this;
+    }
 
 }

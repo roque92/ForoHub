@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,9 +27,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(JsonMappingException.class)
     public ResponseEntity<?> missingCategory(JsonMappingException ex){
-
-        String errorMessage = "La categoría del curso es requerida."; 
-        return ResponseEntity.badRequest().body(errorMessage);
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -36,5 +35,8 @@ public class ErrorHandler {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> HttpMessageNotReadableException(HttpMessageNotReadableException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());        
+    }
 }

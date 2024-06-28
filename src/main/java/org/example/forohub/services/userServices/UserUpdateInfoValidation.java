@@ -1,11 +1,10 @@
-package org.example.forohub.validations;
+package org.example.forohub.services.userServices;
 
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
-import org.example.forohub.services.userServices.UserService;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class UserUpdateInfoValidation {
 
     private UserService userService;
