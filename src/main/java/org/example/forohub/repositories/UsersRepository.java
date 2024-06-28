@@ -1,5 +1,7 @@
 package org.example.forohub.repositories;
 
+import java.util.Optional;
+
 import org.example.forohub.entities.UsersEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,7 +13,7 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface UsersRepository extends JpaRepository<UsersEntity, Long>{
 
-    UsersEntity findByEmail(String email);
+    Optional<UsersEntity> findByEmail(String email);
 
     @Modifying
     @Transactional

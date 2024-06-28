@@ -1,5 +1,7 @@
 package org.example.forohub.services.userServices;
 
+import java.util.Optional;
+
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
 import org.springframework.stereotype.Service;
@@ -35,8 +37,8 @@ public class UserUpdateInfoValidation {
         if(oldEmail.equals(newEmail)){
             return oldEmail;
         }
-        UsersEntity emailAlreadyExists = usersRepository.findByEmail(newEmail);
-        if (emailAlreadyExists != null) {
+        Optional<UsersEntity> emailAlreadyExists = usersRepository.findByEmail(newEmail);
+        if (emailAlreadyExists.isPresent()) {
             throw new IllegalArgumentException("El email ya existe");
         }
         return newEmail;

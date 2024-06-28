@@ -18,6 +18,7 @@ import org.example.forohub.dtos.topicDTO.TopicRegistration;
 import org.example.forohub.dtos.topicDTO.TopicUpdateInfo;
 import org.example.forohub.entities.CursosEntity;
 import org.example.forohub.entities.TopicEntity;
+import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.CoursesRepository;
 import org.example.forohub.repositories.TopicRepository;
 import org.example.forohub.repositories.UsersRepository;
@@ -106,8 +107,8 @@ public class TopicsController {
     @PostMapping()
     @Transactional
     public ResponseEntity<?> createTopic(@RequestBody @Valid TopicRegistration topic) {
-        var user = userRepository.findByEmail(topic.email().trim());
-        if (user != null) {
+        Optional<UsersEntity> user = userRepository.findByEmail(topic.email().trim());
+        if (user.isPresent()) {
 
             CursosEntity cursosEntity = new CursosEntity();
             cursosEntity = cursosEntity.createFromTopicRegistration(topic);
@@ -118,7 +119,7 @@ public class TopicsController {
                 return ResponseEntity.badRequest().body("La categoría del curso es requerida");
             }
 
-            TopicEntity newTopic = new TopicEntity(topic, user, cursosEntity, user.getId(), cursosEntity.getId());
+            TopicEntity newTopic = new TopicEntity(topic, user.get(), cursosEntity, user.get().getId(), cursosEntity.getId());
             newTopic.setTopicCreationDate(LocalDateTime.now());
             newTopic.setTopicStatus(true);
             List<TopicEntity> check;
@@ -166,7 +167,7 @@ public class TopicsController {
             @RequestBody @Valid TopicUpdateInfo topicUpdateInfo) {
         var user = userRepository.findByEmail(topicUpdateInfo.email().trim());
         if (user != null) {
-            Optional<TopicEntity> existTopic = topicRepository.findByIdAndAuthorId(id, user.getId());
+            Optional<TopicEntity> existTopic = topicRepository.findByIdAndAuthorId(id, user.get().getId());
             if (existTopic.isPresent()) {
                 TopicEntity updatedInfo = existTopic.get();
                 if (topicUpdateInfo.title() != null) {
