@@ -23,9 +23,10 @@ public class JwtConfiguration {
                 .withIssuer("DevRoque")
                 .withExpiresAt(Date.from(now.plusHours(2).atZone(ZoneId.systemDefault()).toInstant()))
                 .withIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
+                .withClaim("roles", "ADMIN")
                 .sign(algorithm);
         } catch (JWTCreationException exception){
-            System.err.println("Error creating JWT: " + exception.getMessage());
+            throw exception;
         }
         return token;
     }
@@ -39,8 +40,7 @@ public class JwtConfiguration {
                 .verify(token);
             return true;
         } catch (JWTVerificationException exception) {
-            System.err.println("JWT validation failed: " + exception.getMessage());
-            return false;
+            throw exception;
         }
     }
     

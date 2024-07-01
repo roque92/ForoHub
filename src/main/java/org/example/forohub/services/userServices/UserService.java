@@ -19,10 +19,4 @@ public class UserService {
         newUser.setPassword(encryptedPassword); 
         return newUser;
     }
-
-    
-    public boolean matchPassword(String password, String encryptedPassword){
-        return passwordEncoder.matches(password, encryptedPassword);
-    }
-
 }

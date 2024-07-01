@@ -9,6 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 @RestControllerAdvice
@@ -31,12 +33,28 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> IllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<?> illegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<?> HttpMessageNotReadableException(HttpMessageNotReadableException ex){
+    public ResponseEntity<?> httpMessageNotReadableException(HttpMessageNotReadableException ex){
         return ResponseEntity.badRequest().body(ex.getMessage());        
     }
+
+    @ExceptionHandler(JWTVerificationException.class)
+    public ResponseEntity<?> jwtVerificationException (JWTVerificationException  ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(JWTCreationException.class)
+    public ResponseEntity<?> jwtCreationException(JWTCreationException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> runtimeException(RuntimeException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
 }

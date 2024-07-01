@@ -27,12 +27,12 @@ public class SecurityConfig {
                 // Set permissions to endpoints
                 .authorizeHttpRequests(auth -> auth
                         // public enpoints
+                        //Login
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        //Create Account
                         .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/login/**").permitAll()
-                        // private endpoints
                         .anyRequest().authenticated())
-                .build();
+                .build(); 
     }
 
 }

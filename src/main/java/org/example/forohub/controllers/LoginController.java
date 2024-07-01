@@ -17,7 +17,6 @@ import org.example.forohub.dtos.userDTO.UserUpdateInformation;
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
 import org.example.forohub.services.userServices.UserService;
-import org.example.forohub.services.userServices.UserUpdateInfoValidation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,14 +31,12 @@ public class LoginController {
     private UserService userService;
     private UsersRepository usersRepository;
     private JwtConfiguration jwtConfiguration;
-    private UserUpdateInfoValidation validation;
 
     public LoginController(UserService userService, UsersRepository usersRepository,
-            JwtConfiguration jwtConfiguration, UserUpdateInfoValidation validation) {
+            JwtConfiguration jwtConfiguration) {
         this.userService = userService;
         this.usersRepository = usersRepository;
         this.jwtConfiguration = jwtConfiguration;
-        this.validation = validation;
     }
 
     @PostMapping()
@@ -49,7 +46,7 @@ public class LoginController {
         if (!user.isPresent()) {
             return ResponseEntity.badRequest().body("Usuario no existe");
         }
-        if (!userService.matchPassword(login.password(), user.get().getPassword())) {
+        if (!userService.passwordEncoder.matches(login.password(), user.get().getPassword())) {
             return ResponseEntity.badRequest().body("Contraseña incorrecta");
         }
         String token = jwtConfiguration.jwt(user.get().getPassword());
@@ -70,28 +67,41 @@ public class LoginController {
     }
 
     // update UserInformation
-    @PutMapping("/{email}")
-    @Transactional
-    public ResponseEntity<?> updateUserInformation(@PathVariable("email") String email,
-            @RequestBody UserUpdateInformation userUpdateInformation) {
-        Optional<UsersEntity> user = usersRepository.findByEmail(email);
+@PutMapping("/{email}")
+@Transactional
+public ResponseEntity<?> updateUserInformation(@PathVariable("email") String email,
+        @RequestBody UserUpdateInformation userUpdateInformation) {
+    Optional<UsersEntity> user = usersRepository.findByEmail(email);
 
-        if (user.isPresent()) {
-
-            String passwordValidated = validation.passwordValidation(userUpdateInformation.password(),
-                    user.get().getPassword());
-            String emailValidated = validation.emailValidation(user.get().getEmail(), userUpdateInformation.email());
-            if (passwordValidated.equals(user.get().getPassword()) && emailValidated.equals(user.get().getEmail())) {
-                return ResponseEntity.ok("Usuario y contraseña son iguales");
+    if (user.isPresent()) {
+        UsersEntity updatedInfo = user.get();
+        if (userUpdateInformation.email() != null) { 
+            if (!updatedInfo.getEmail().equals(userUpdateInformation.email())) {
+                // Solo verificar si el nuevo email existe si es diferente al actual
+                Optional<UsersEntity> newEmail = usersRepository.findByEmail(userUpdateInformation.email());
+                if (newEmail.isPresent()) {
+                    return ResponseEntity.badRequest().body("El email ya existe.");                    
+                } else {
+                    updatedInfo.setEmail(userUpdateInformation.email());
+                }
+            } else {
+                return ResponseEntity.badRequest().body("El Correo es el mismo.");
             }
-            user.get().setPassword(passwordValidated);
-            user.get().setEmail(emailValidated);
-            usersRepository.updateEmailAndPassword(user.get().getPassword(), user.get().getEmail());
-            return ResponseEntity.ok("Informacion actualizada correctamente");
-
-        } else {
-            return ResponseEntity.badRequest().body("Usuario no existe");
         }
+        if (userUpdateInformation.password() != null) {
+            if (!userService.passwordEncoder.matches(userUpdateInformation.password(), updatedInfo.getPassword())) {
+                updatedInfo.setPassword(userService.passwordEncoder.encode(userUpdateInformation.password()));                
+            } else {
+                return ResponseEntity.badRequest().body("La contraseña es la misma.");
+            }
+        }
+        usersRepository.save(updatedInfo);
+        return ResponseEntity.ok("Datos actualizados correctamente");
+
+    }
+
+    return ResponseEntity.notFound().build();
+
 
     }
 
@@ -105,8 +115,8 @@ public class LoginController {
             usersRepository.deleteById(user.get().getId());
             return ResponseEntity.ok("Usuario eliminado exitosamente");
         }
-        
-        return ResponseEntity.badRequest().body("Usuario no existe");
-        
+
+        return ResponseEntity.notFound().build();
+
     }
 }
