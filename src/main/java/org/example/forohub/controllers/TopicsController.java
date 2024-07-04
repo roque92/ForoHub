@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.example.forohub.dtos.cursoDTO.CursoDelete;
 import org.example.forohub.dtos.topicDTO.TopicConsult;
+import org.example.forohub.dtos.topicDTO.TopicDelete;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
 import org.example.forohub.dtos.topicDTO.TopicUpdateInfo;
 import org.example.forohub.entities.CursosEntity;
@@ -32,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -119,7 +122,8 @@ public class TopicsController {
                 return ResponseEntity.badRequest().body("La categoría del curso es requerida");
             }
 
-            TopicEntity newTopic = new TopicEntity(topic, user.get(), cursosEntity, user.get().getId(), cursosEntity.getId());
+            TopicEntity newTopic = new TopicEntity(topic, user.get(), cursosEntity, user.get().getId(),
+                    cursosEntity.getId());
             newTopic.setTopicCreationDate(LocalDateTime.now());
             newTopic.setTopicStatus(true);
             List<TopicEntity> check;
@@ -198,8 +202,50 @@ public class TopicsController {
         return ResponseEntity.badRequest().body("Usuario no encontrado");
     }
 
-    // Delete
+    @GetMapping("userTopic/{email}")
+    public ResponseEntity<List<TopicConsult>> topicsByEmail(@PathVariable("email") String email) {
+        Optional<UsersEntity> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            List<TopicEntity> topics = topicRepository.findAllByAuthorId(user.get().getId());
+            if (topics.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            List<TopicConsult> topicsByEmail = topics.stream()
+            .map(t -> {
+                TopicConsult topic = new TopicConsult(
+                t.getTitleTopic(),
+                t.getBodyTopic(),
+                t.getTopicStatus(),
+                t.getTopicCreationDate(),
+                t.getUserConsult().name(),
+                t.getCursoConsult().category());
+                return topic;    
+            })
+            .collect(Collectors.toList());
 
-    // Topic Details
+            return ResponseEntity.ok().body(topicsByEmail);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    // Delete
+    @DeleteMapping()
+    @Transactional
+    public ResponseEntity<?> deleteById (@RequestBody @Valid TopicDelete topicDelete){
+        Optional<TopicEntity> existTopic = topicRepository.findById(topicDelete.id());
+        if(!existTopic.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+        
+        Long cursoId =  existTopic.get().getCurso().getId();
+        Optional<CursosEntity> existCurso = coursesRepository.findById(cursoId);
+        if(!existCurso.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+
+        topicRepository.deleteById(existTopic.get().getId());
+        coursesRepository.deleteById(cursoId);
+        return ResponseEntity.ok("Topic eliminado correctamente");
+    }
 
 }

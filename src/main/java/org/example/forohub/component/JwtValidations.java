@@ -25,7 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtValidations extends OncePerRequestFilter {
 
     private JwtConfiguration jwtConfiguration;
-    private static final String SECRET = "$argon2id$v=19$m=16384,t=2,p=1$NLglJ5n+eDSJZBNiMQ3VhA$Gze/TqdHMBoJTQSLDpYViaC0I1eWNg1pPvq6VuZB7FE";
+    private static final String SECRET = "$argon2id$v=19$m=16384,t=2,p=1$o6ivHE811fK9lElaw4DW7A$bVkKG3wPg1rgshY+14zIJqeIsmupZHc3M+ATJfvG0+o";
 
     public JwtValidations(JwtConfiguration jwtConfiguration) {
         this.jwtConfiguration = jwtConfiguration;

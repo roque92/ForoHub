@@ -16,4 +16,6 @@ public interface TopicRepository extends JpaRepository<TopicEntity, Long> {
 
     Optional<TopicEntity> findByIdAndAuthorId(Long id, Long authorId);
 
+    List<TopicEntity> findAllByAuthorId(Long id);
+
 }
