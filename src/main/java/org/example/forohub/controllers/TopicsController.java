@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.example.forohub.dtos.cursoDTO.CursoDelete;
 import org.example.forohub.dtos.topicDTO.TopicConsult;
 import org.example.forohub.dtos.topicDTO.TopicDelete;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
