@@ -1,14 +1,8 @@
 package org.example.forohub.controllers;
 
-import org.springframework.web.bind.annotation.RestController;
-
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.Optional;
-
+import org.example.forohub.component.JwtValidations;
 import org.example.forohub.configurations.JwtConfiguration;
 import org.example.forohub.dtos.userDTO.UserDelete;
 import org.example.forohub.dtos.userDTO.UserLogin;
@@ -17,12 +11,13 @@ import org.example.forohub.dtos.userDTO.UserUpdateInformation;
 import org.example.forohub.entities.UsersEntity;
 import org.example.forohub.repositories.UsersRepository;
 import org.example.forohub.services.userServices.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/login")
@@ -31,16 +26,20 @@ public class LoginController {
     private UserService userService;
     private UsersRepository usersRepository;
     private JwtConfiguration jwtConfiguration;
+    private JwtValidations jwtValidations;
 
     public LoginController(UserService userService, UsersRepository usersRepository,
-            JwtConfiguration jwtConfiguration) {
+                           JwtConfiguration jwtConfiguration, JwtValidations jwtValidations) {
         this.userService = userService;
         this.usersRepository = usersRepository;
         this.jwtConfiguration = jwtConfiguration;
+        this.jwtValidations = jwtValidations;
     }
 
     @PostMapping()
     public ResponseEntity<?> loginUser(@RequestBody @Valid UserLogin login) {
+
+        jwtConfiguration.setEMAIL(login.email());
 
         Optional<UsersEntity> user = usersRepository.findByEmail(login.email());
         if (!user.isPresent()) {
@@ -50,8 +49,10 @@ public class LoginController {
             return ResponseEntity.badRequest().body("Contraseña incorrecta");
         }
         String token = jwtConfiguration.jwt(user.get().getPassword());
+        jwtValidations.setSECRET(user.get().getPassword());
 
-        return ResponseEntity.ok("\n" + token + "\n\n" + user.get().getPassword() + "\n\n");
+
+        return ResponseEntity.ok("JWT:\n" + token);
     }
 
     @PostMapping("/create")
@@ -71,11 +72,23 @@ public class LoginController {
 @Transactional
 public ResponseEntity<?> updateUserInformation(@PathVariable("email") String email,
         @RequestBody UserUpdateInformation userUpdateInformation) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || authentication.getCredentials() == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado");
+    }
+
+    String authenticatedEmail = (String) authentication.getCredentials();
+    if (!authenticatedEmail.equals(email)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permiso para eliminar este usuario");
+    }
+
+
     Optional<UsersEntity> user = usersRepository.findByEmail(email);
 
     if (user.isPresent()) {
         UsersEntity updatedInfo = user.get();
-        if (userUpdateInformation.email() != null) { 
+        if (userUpdateInformation.email() != null && !userUpdateInformation.email().isEmpty()) {
             if (!updatedInfo.getEmail().equals(userUpdateInformation.email())) {
                 // Solo verificar si el nuevo email existe si es diferente al actual
                 Optional<UsersEntity> newEmail = usersRepository.findByEmail(userUpdateInformation.email());
@@ -101,14 +114,22 @@ public ResponseEntity<?> updateUserInformation(@PathVariable("email") String ema
     }
 
     return ResponseEntity.notFound().build();
-
-
     }
 
     // Delete
     @DeleteMapping()
     @Transactional
     public ResponseEntity<?> deleteUser(@RequestBody @Valid UserDelete userDelete) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getCredentials() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado");
+        }
+
+        String authenticatedEmail = (String) authentication.getCredentials();
+        if (!authenticatedEmail.equals(userDelete.email())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permiso para eliminar este usuario");
+        }
 
         Optional<UsersEntity> user = usersRepository.findByEmail(userDelete.email());
         if (user.isPresent()) {

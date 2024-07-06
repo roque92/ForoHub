@@ -31,6 +31,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         //Create Account
                         .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
+                        //Swagger UI
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui.html/**").permitAll()
                         .anyRequest().authenticated())
                 .build(); 
     }

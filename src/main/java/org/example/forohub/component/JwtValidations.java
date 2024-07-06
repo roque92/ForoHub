@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.Setter;
 import org.example.forohub.configurations.JwtConfiguration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,10 +23,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
+@Setter
 public class JwtValidations extends OncePerRequestFilter {
 
     private JwtConfiguration jwtConfiguration;
-    private static final String SECRET = "$argon2id$v=19$m=16384,t=2,p=1$o6ivHE811fK9lElaw4DW7A$bVkKG3wPg1rgshY+14zIJqeIsmupZHc3M+ATJfvG0+o";
+    private String SECRET;
 
     public JwtValidations(JwtConfiguration jwtConfiguration) {
         this.jwtConfiguration = jwtConfiguration;
@@ -42,10 +44,13 @@ public class JwtValidations extends OncePerRequestFilter {
                 if (jwtConfiguration.jwtValidation(token, SECRET)) {
                     Algorithm algorithm = Algorithm.HMAC256(SECRET);
                     DecodedJWT decodedJWT = JWT.require(algorithm).build().verify(token);
+
                     String rolesClaim = decodedJWT.getClaim("roles").asString();
+                    String emailClaim = decodedJWT.getClaim("email").asString();
+
                     List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(rolesClaim));
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(token,
-                            null, authorities);
+                            emailClaim, authorities);
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(
