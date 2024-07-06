@@ -18,35 +18,27 @@ public class JwtConfiguration {
 
     private String EMAIL;
 
-    public String jwt (String secret){
-        String token = "";
+    public String jwt (String secret) throws JWTCreationException {
+        String token;
         LocalDateTime now = LocalDateTime.now();
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            token = JWT.create()
-                .withIssuer("DevRoque")
-                .withExpiresAt(Date.from(now.plusHours(2).atZone(ZoneId.systemDefault()).toInstant()))
-                .withIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
-                    .withClaim("email", EMAIL)
-                .withClaim("roles", "ADMIN")
-                .sign(algorithm);
-        } catch (JWTCreationException exception){
-            throw exception;
-        }
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+        token = JWT.create()
+            .withIssuer("DevRoque")
+            .withExpiresAt(Date.from(now.plusHours(2).atZone(ZoneId.systemDefault()).toInstant()))
+            .withIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
+                .withClaim("email", EMAIL)
+            .withClaim("roles", "ADMIN")
+            .sign(algorithm);
         return token;
     }
 
-    public boolean jwtValidation(String token, String secret) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            JWT.require(algorithm)
-                .withIssuer("DevRoque")
-                .build()
-                .verify(token);
-            return true;
-        } catch (JWTVerificationException exception) {
-            throw exception;
-        }
+    public boolean jwtValidation(String token, String secret) throws JWTVerificationException {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+        JWT.require(algorithm)
+            .withIssuer("DevRoque")
+            .build()
+            .verify(token);
+        return true;
     }
     
 

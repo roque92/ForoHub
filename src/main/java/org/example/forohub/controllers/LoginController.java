@@ -23,10 +23,10 @@ import java.util.Optional;
 @RequestMapping("/login")
 public class LoginController {
 
-    private UserService userService;
-    private UsersRepository usersRepository;
-    private JwtConfiguration jwtConfiguration;
-    private JwtValidations jwtValidations;
+    private final UserService userService;
+    private final UsersRepository usersRepository;
+    private final JwtConfiguration jwtConfiguration;
+    private final JwtValidations jwtValidations;
 
     public LoginController(UserService userService, UsersRepository usersRepository,
                            JwtConfiguration jwtConfiguration, JwtValidations jwtValidations) {
