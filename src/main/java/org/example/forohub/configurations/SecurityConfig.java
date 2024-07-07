@@ -22,8 +22,6 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Add JwtValidations filter before the UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtValidations, UsernamePasswordAuthenticationFilter.class) 
                 // Set permissions to endpoints
                 .authorizeHttpRequests(auth -> auth
                         // public enpoints
@@ -32,9 +30,13 @@ public class SecurityConfig {
                         //Create Account
                         .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
                         //Swagger UI
-                        .requestMatchers(HttpMethod.GET, "/swagger-ui.html/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
-                .build(); 
+                // Add JwtValidations filter before the UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtValidations, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
 }
+
+

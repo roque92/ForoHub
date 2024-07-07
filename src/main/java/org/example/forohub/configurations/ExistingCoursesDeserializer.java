@@ -14,7 +14,7 @@ public class ExistingCoursesDeserializer extends JsonDeserializer<CursoExistente
     @Override
     public CursoExistente deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String courseName = p.getText();
-        if (courseName == null || courseName.isBlank()) {
+        if (courseName == null) {
             throw new JsonMappingException(p, "Invalid course category: " + courseName);
         }
         for (CursoExistente course : CursoExistente.values()) {

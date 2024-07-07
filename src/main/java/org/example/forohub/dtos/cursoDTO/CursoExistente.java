@@ -22,6 +22,8 @@ public enum CursoExistente {
     PHP("php"),
     RUBY("Ruby", "ruby"),
     RUST("Rust", "rust"),
+    FLUTTER("flutter", "Flutter"),
+    ANDROID("Android", "android"),
     OTHER;
 
     private final String[] names;

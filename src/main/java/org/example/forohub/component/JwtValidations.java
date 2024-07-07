@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Setter
 public class JwtValidations extends OncePerRequestFilter {
 
-    private JwtConfiguration jwtConfiguration;
+    private final JwtConfiguration jwtConfiguration;
     private String SECRET;
 
     public JwtValidations(JwtConfiguration jwtConfiguration) {
@@ -37,6 +37,15 @@ public class JwtValidations extends OncePerRequestFilter {
     @SuppressWarnings("null")
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        String requestURI = request.getRequestURI();
+        // Ignorar peticiones a Swagger UI
+        if (requestURI.startsWith("/swagger-ui.html") || requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         try {
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {

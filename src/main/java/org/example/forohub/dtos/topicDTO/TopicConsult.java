@@ -7,6 +7,7 @@ import org.example.forohub.dtos.cursoDTO.CursoExistente;
 import org.example.forohub.dtos.userDTO.UserConsult;
 
 public record TopicConsult(
+        Long id,
     String titleTopic,
     String bodytopic,
     boolean statusTopic,
@@ -15,9 +16,9 @@ public record TopicConsult(
     CursoConsult cursoConsult
 ) {
 
-    public TopicConsult(String titleTopic2, String bodyTopic2, Boolean topicStatus, LocalDateTime topicCreationDate2,
+    public TopicConsult(Long id, String titleTopic2, String bodyTopic2, Boolean topicStatus, LocalDateTime topicCreationDate2,
             String name, CursoExistente category) {
-        this(titleTopic2, bodyTopic2, topicStatus, topicCreationDate2, new UserConsult(name), new CursoConsult(category));
+        this(id, titleTopic2, bodyTopic2, topicStatus, topicCreationDate2, new UserConsult(name), new CursoConsult(category));
     }
 
 }

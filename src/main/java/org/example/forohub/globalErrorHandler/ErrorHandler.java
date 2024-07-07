@@ -3,6 +3,7 @@ package org.example.forohub.globalErrorHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -55,6 +56,11 @@ public class ErrorHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> runtimeException(RuntimeException ex){
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<?> tokenExpiredException(TokenExpiredException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage() + " " + ex.getExpiredOn().toString());
     }
 
 }

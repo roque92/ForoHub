@@ -1,5 +1,6 @@
 package org.example.forohub.controllers;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.example.forohub.component.JwtValidations;
@@ -70,6 +71,7 @@ public class LoginController {
     // update UserInformation
 @PutMapping("/{email}")
 @Transactional
+@SecurityRequirement(name = "bearer-key")
 public ResponseEntity<?> updateUserInformation(@PathVariable("email") String email,
         @RequestBody UserUpdateInformation userUpdateInformation) {
 
@@ -119,6 +121,7 @@ public ResponseEntity<?> updateUserInformation(@PathVariable("email") String ema
     // Delete
     @DeleteMapping()
     @Transactional
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<?> deleteUser(@RequestBody @Valid UserDelete userDelete) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

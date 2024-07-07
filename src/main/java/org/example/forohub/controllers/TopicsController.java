@@ -1,18 +1,9 @@
 package org.example.forohub.controllers;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import org.example.forohub.dtos.cursoDTO.CursoUpdateInfo;
 import org.example.forohub.dtos.topicDTO.TopicConsult;
 import org.example.forohub.dtos.topicDTO.TopicDelete;
 import org.example.forohub.dtos.topicDTO.TopicRegistration;
@@ -26,19 +17,17 @@ import org.example.forohub.repositories.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/topics")
@@ -46,19 +35,22 @@ public class TopicsController {
 
     private static final Logger log = LoggerFactory.getLogger(TopicsController.class);
 
-    private UsersRepository userRepository;
-    private CoursesRepository coursesRepository;
-    private TopicRepository topicRepository;
+    private final UsersRepository userRepository;
+    private final CoursesRepository coursesRepository;
+    private final TopicRepository topicRepository;
 
     public TopicsController(UsersRepository userRepository, CoursesRepository coursesRepository,
-            TopicRepository topicRepository, HttpServletRequest request) {
+                            TopicRepository topicRepository) {
         this.userRepository = userRepository;
         this.coursesRepository = coursesRepository;
         this.topicRepository = topicRepository;
     }
 
+
+
     // findAll
     @GetMapping()
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Page<TopicConsult>> listAllTopics(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -70,16 +62,14 @@ public class TopicsController {
         }
 
         List<TopicConsult> allTopics = topics.stream()
-                .map(t -> {
-                    TopicConsult topic = new TopicConsult(
-                            t.getTitleTopic(),
-                            t.getBodyTopic(),
-                            t.getTopicStatus(),
-                            t.getTopicCreationDate(),
-                            t.getUserConsult().name(),
-                            t.getCursoConsult().category());
-                    return topic;
-                })
+                .map(t -> new TopicConsult(
+                        t.getId(),
+                        t.getTitleTopic(),
+                        t.getBodyTopic(),
+                        t.getTopicStatus(),
+                        t.getTopicCreationDate(),
+                        t.getUserConsult().name(),
+                        t.getCursoConsult().category()))
                 .collect(Collectors.toList());
 
         Page<TopicConsult> resultPage = new PageImpl<>(allTopics, pageable, topics.getTotalElements());
@@ -88,11 +78,13 @@ public class TopicsController {
 
     // findByID
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<TopicConsult> getTopicById(@PathVariable("id") Long id) {
         Optional<TopicEntity> topic = topicRepository.findById(id);
         if (topic.isPresent()) {
             TopicEntity topicEntity = topic.get();
             TopicConsult topicConsult = new TopicConsult(
+                    topicEntity.getId(),
                     topicEntity.getTitleTopic(),
                     topicEntity.getBodyTopic(),
                     topicEntity.getTopicStatus(),
@@ -108,8 +100,12 @@ public class TopicsController {
     // Create
     @PostMapping()
     @Transactional
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<?> createTopic(@RequestBody @Valid TopicRegistration topic) {
-        Optional<UsersEntity> user = userRepository.findByEmail(topic.email().trim());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedEmail = (String) authentication.getCredentials();
+
+        Optional<UsersEntity> user = userRepository.findByEmail(authenticatedEmail);
         if (user.isPresent()) {
 
             CursosEntity cursosEntity = new CursosEntity();
@@ -129,12 +125,12 @@ public class TopicsController {
             check = topicRepository.findByTitleTopic(newTopic.getTitleTopic());
             if (!check.isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body("El título del tema ya existe, busca el id del tema: " + check.get(0).getId());
+                        .body("El título del tema ya existe, busca el id del tema: " + check.getFirst().getId());
             }
             check = topicRepository.findByBodyTopic(newTopic.getBodyTopic());
             if (!check.isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body("El mensaje del tema ya existe, busca el id: " + check.get(0).getId());
+                        .body("El mensaje del tema ya existe, busca el id: " + check.getFirst().getId());
             }
 
             try {
@@ -166,33 +162,55 @@ public class TopicsController {
     // Update
     @PutMapping("/{id}")
     @Transactional
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<?> updateTopic(@PathVariable("id") Long id,
-            @RequestBody @Valid TopicUpdateInfo topicUpdateInfo) {
-        var user = userRepository.findByEmail(topicUpdateInfo.email().trim());
-        if (user != null) {
+            @RequestBody TopicUpdateInfo topicUpdateInfo) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedEmail = (String) authentication.getCredentials();
+
+        var user = userRepository.findByEmail(authenticatedEmail);
+
+        if (user.isPresent()) {
             Optional<TopicEntity> existTopic = topicRepository.findByIdAndAuthorId(id, user.get().getId());
+
             if (existTopic.isPresent()) {
-                TopicEntity updatedInfo = existTopic.get();
-                if (topicUpdateInfo.title() != null) {
-                    if (updatedInfo.getTitleTopic() != topicUpdateInfo.title()) {
-                        updatedInfo.setTitleTopic(topicUpdateInfo.title());
+                TopicEntity currentTopic = existTopic.get();
+
+                if (topicUpdateInfo.title() != null && !topicUpdateInfo.title().isEmpty()) {
+                    if (topicUpdateInfo.title().equalsIgnoreCase(currentTopic.getTitleTopic())) {
+                        return ResponseEntity.badRequest().body("El titulo del topic ya existe.");
                     }
-                    throw new IllegalArgumentException("El titulo del topic ya existe.");
-                }
-                if (topicUpdateInfo.message() != null) {
-                    if (updatedInfo.getBodyTopic() != topicUpdateInfo.message()) {
-                        updatedInfo.setBodyTopic(topicUpdateInfo.message());
-                    }
-                    throw new IllegalArgumentException("El mensaje del topic ya existe.");
-                }
-                if (updatedInfo.getTopicStatus() != topicUpdateInfo.status()) {
-                    updatedInfo.setTopicStatus(topicUpdateInfo.status());
-                }
-                if (topicUpdateInfo.cursoUpdateInfo() != null) {
-                    updatedInfo.actualizarCurso(topicUpdateInfo.cursoUpdateInfo());
+                    currentTopic.setTitleTopic(topicUpdateInfo.title());
                 }
 
-                topicRepository.save(updatedInfo);
+                if (topicUpdateInfo.message() != null && !topicUpdateInfo.message().isEmpty()) {
+                    if (currentTopic.getBodyTopic().equals(topicUpdateInfo.message())) {
+                        return ResponseEntity.badRequest().body("El mensaje del topic ya existe.");
+                    }
+                    currentTopic.setBodyTopic(topicUpdateInfo.message());
+                }
+
+
+                if (currentTopic.getTopicStatus() != topicUpdateInfo.status()) {
+                    currentTopic.setTopicStatus(topicUpdateInfo.status());
+                }
+
+
+                if (topicUpdateInfo.curso() != null) {
+                    CursoUpdateInfo cursoUpdateInfo = topicUpdateInfo.curso();
+
+                    if (cursoUpdateInfo.name() != null && !cursoUpdateInfo.name().isEmpty()) {
+                        currentTopic.getCurso().setName(cursoUpdateInfo.name());
+                    }
+
+                    if (cursoUpdateInfo.category() != null && !cursoUpdateInfo.category().equals("")) {
+                        currentTopic.getCurso().setCursoCategory(cursoUpdateInfo.category());
+                    }
+                }
+
+                topicRepository.save(currentTopic);
+                coursesRepository.save(currentTopic.getCurso());
                 return ResponseEntity.ok().body("Datos actualizados correctamente");
 
             }
@@ -201,7 +219,9 @@ public class TopicsController {
         return ResponseEntity.badRequest().body("Usuario no encontrado");
     }
 
+
     @GetMapping("userTopic/{email}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<List<TopicConsult>> topicsByEmail(@PathVariable("email") String email) {
         Optional<UsersEntity> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
@@ -210,16 +230,14 @@ public class TopicsController {
                 return ResponseEntity.noContent().build();
             }
             List<TopicConsult> topicsByEmail = topics.stream()
-            .map(t -> {
-                TopicConsult topic = new TopicConsult(
-                t.getTitleTopic(),
-                t.getBodyTopic(),
-                t.getTopicStatus(),
-                t.getTopicCreationDate(),
-                t.getUserConsult().name(),
-                t.getCursoConsult().category());
-                return topic;    
-            })
+            .map(t -> new TopicConsult(
+                    t.getId(),
+            t.getTitleTopic(),
+            t.getBodyTopic(),
+            t.getTopicStatus(),
+            t.getTopicCreationDate(),
+            t.getUserConsult().name(),
+            t.getCursoConsult().category()))
             .collect(Collectors.toList());
 
             return ResponseEntity.ok().body(topicsByEmail);
@@ -230,7 +248,18 @@ public class TopicsController {
     // Delete
     @DeleteMapping()
     @Transactional
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<?> deleteById (@RequestBody @Valid TopicDelete topicDelete){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getCredentials() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado");
+        }
+
+        String authenticatedEmail = (String) authentication.getCredentials();
+        if (!authenticatedEmail.equals(topicDelete.email())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permiso para eliminar este topic");
+        }
+
         Optional<TopicEntity> existTopic = topicRepository.findById(topicDelete.id());
         if(!existTopic.isPresent()){
             return ResponseEntity.notFound().build();
